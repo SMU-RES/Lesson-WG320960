@@ -1,0 +1,67 @@
+@{
+    ViewData["Title"] = "历史数据";
+}
+
+<h2>历史数据</h2>
+
+<div class="mb-3">
+    <button id="refresh" class="btn btn-primary">刷新</button>
+    <span class="ms-3 text-muted" id="status"></span>
+</div>
+
+<canvas id="tempChart" height="90"></canvas>
+<canvas id="voltChart" height="90" class="mt-4"></canvas>
+<canvas id="rpmChart" height="90" class="mt-4"></canvas>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        let tempChart, voltChart, rpmChart;
+
+        function createLineChart(canvasId, label, color) {
+            const ctx = document.getElementById(canvasId);
+            return new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: label, data: [], borderColor: color, borderWidth: 2, pointRadius: 0, tension: 0.15 }] },
+                options: {
+                    responsive: true,
+                    animation: false,
+                    scales: {
+                        x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } }
+                    }
+                }
+            });
+        }
+
+        async function refresh() {
+            document.getElementById('status').textContent = '加载中...';
+            const res = await fetch('/api/telemetry/latest?limit=500');
+            const data = await res.json();
+
+            const ordered = data.slice().reverse();
+            const labels = ordered.map(x => new Date(x.timestampUtc).toLocaleTimeString());
+
+            tempChart.data.labels = labels;
+            tempChart.data.datasets[0].data = ordered.map(x => x.temperatureC);
+            tempChart.update();
+
+            voltChart.data.labels = labels;
+            voltChart.data.datasets[0].data = ordered.map(x => x.voltageV);
+            voltChart.update();
+
+            rpmChart.data.labels = labels;
+            rpmChart.data.datasets[0].data = ordered.map(x => x.rpm);
+            rpmChart.update();
+
+            document.getElementById('status').textContent = `已加载 ${data.length} 条`;
+        }
+
+        document.getElementById('refresh').addEventListener('click', refresh);
+
+        tempChart = createLineChart('tempChart', 'Temperature(°C)', 'rgb(255,99,132)');
+        voltChart = createLineChart('voltChart', 'Voltage(V)', 'rgb(54,162,235)');
+        rpmChart = createLineChart('rpmChart', 'RPM', 'rgb(75,192,192)');
+
+        refresh();
+    </script>
+}

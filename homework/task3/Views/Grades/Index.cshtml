@@ -1,0 +1,115 @@
+@model IReadOnlyList<task3.Models.GradeRecord>
+@using task3.Models
+@{
+    ViewData["Title"] = "成绩查询";
+    var users = ViewBag.Users as List<User> ?? new();
+    int? filterUserId = ViewBag.FilterUserId as int?;
+    string? filterCourse = ViewBag.FilterCourse as string;
+}
+
+<div class="d-flex justify-content-between align-items-center">
+    <h2>成绩查询</h2>
+    <form method="post" asp-controller="Login" asp-action="Logout">
+        @Html.AntiForgeryToken()
+        <button class="btn btn-outline-secondary" type="submit">退出</button>
+    </form>
+</div>
+
+<hr />
+
+<h4>查询条件</h4>
+<form method="get" class="row g-3">
+    <div class="col-md-4">
+        <label class="form-label">学生</label>
+        <select class="form-select" name="userId">
+            <option value="">(全部)</option>
+            @foreach (var u in users)
+            {
+                <option value="@u.Id" selected="@(filterUserId == u.Id)">@u.UserName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">课程关键字</label>
+        <input class="form-control" name="course" value="@filterCourse" />
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-primary" type="submit">查询</button>
+    </div>
+</form>
+
+<hr />
+
+<h4>新增成绩</h4>
+<form method="post" asp-action="Add" class="row g-3">
+    @Html.AntiForgeryToken()
+    <div class="col-md-3">
+        <label class="form-label">学生</label>
+        <select class="form-select" name="userId" required>
+            @foreach (var u in users)
+            {
+                <option value="@u.Id">@u.UserName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">课程名</label>
+        <input class="form-control" name="courseName" required />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">分数</label>
+        <input class="form-control" name="score" type="number" step="0.1" required />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">考试日期</label>
+        <input class="form-control" name="examDate" type="date" required />
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-success" type="submit">新增</button>
+    </div>
+</form>
+
+<hr />
+
+<h4>成绩列表（可增删改查）</h4>
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>学生</th>
+            <th>课程</th>
+            <th>分数</th>
+            <th>日期</th>
+            <th style="width: 220px;">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <form method="post">
+                    @Html.AntiForgeryToken()
+                    <td>
+                        @r.Id
+                        <input type="hidden" name="id" value="@r.Id" />
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm" name="userId">
+                            @foreach (var u in users)
+                            {
+                                <option value="@u.Id" selected="@(u.Id == r.UserId)">@u.UserName</option>
+                            }
+                        </select>
+                    </td>
+                    <td><input class="form-control form-control-sm" name="courseName" value="@r.CourseName" /></td>
+                    <td><input class="form-control form-control-sm" name="score" type="number" step="0.1" value="@r.Score" /></td>
+                    <td><input class="form-control form-control-sm" name="examDate" type="date" value="@r.ExamDate.ToString("yyyy-MM-dd")" /></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" formaction="@Url.Action("Update")">保存</button>
+                        <button class="btn btn-sm btn-danger" formaction="@Url.Action("Delete")" onclick="return confirm('确认删除?');">删除</button>
+                    </td>
+                </form>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "µÇÂ¼";
+}
+
+<h2>µÇÂ¼</h2>
+
+@if (ViewBag.Error is string err)
+{
+    <div class="alert alert-danger">@err</div>
+}
+
+<form method="post">
+    @Html.AntiForgeryToken()
+    <div class="mb-3">
+        <label class="form-label">ÓÃ»§Ãû</label>
+        <input class="form-control" name="userName" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">ÃÜÂë</label>
+        <input class="form-control" name="password" type="password" />
+    </div>
+    <button class="btn btn-primary" type="submit">µÇÂ¼</button>
+</form>
+
+<p class="text-muted mt-3">Ä¬ÈÏÕËºÅ£ºstudent / 123456</p>
